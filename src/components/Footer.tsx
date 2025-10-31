@@ -3,25 +3,32 @@ import techIllustration from "@/assets/tech-illustration.png";
 
 const Footer = () => {
   return (
-    <footer className="relative bg-card/50 border-t border-border py-16 overflow-hidden">
-      {/* Background illustration */}
-      <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-10">
+    <footer className="relative bg-gradient-to-b from-background via-card/30 to-card/60 border-t border-primary/20 py-16 overflow-hidden">
+      {/* Background illustration - more integrated */}
+      <div className="absolute right-0 bottom-0 w-full md:w-2/3 h-full opacity-[0.08] pointer-events-none">
         <img 
           src={techIllustration} 
           alt="" 
-          className="w-full h-full object-contain object-right-bottom"
+          className="w-full h-full object-cover object-right-bottom mix-blend-screen"
         />
+      </div>
+      
+      {/* Decorative hexagon overlay */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-64 h-72 border-2 border-primary/10 opacity-30"
+           style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="grid md:grid-cols-3 gap-12">
           {/* Logo and description */}
           <div className="space-y-4">
-            <img 
-              src={sinergiaLogo} 
-              alt="Sinergia AI" 
-              className="h-16 w-auto"
-            />
+            <div className="inline-flex items-center gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-primary/20">
+              <img 
+                src={sinergiaLogo} 
+                alt="Sinergia AI" 
+                className="h-14 w-auto drop-shadow-[0_0_15px_rgba(0,209,255,0.4)]"
+              />
+            </div>
             <p className="text-sm text-muted-foreground max-w-xs">
               Soluciones tecnológicas B2B para impulsar el crecimiento de tu negocio con inteligencia artificial avanzada.
             </p>

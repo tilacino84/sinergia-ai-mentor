@@ -22,16 +22,22 @@ const AnalisisComplejo = () => {
     setIsLoading(true);
     setResponse("");
 
-    // Simulated API call - In production, this would call Gemini API
-    setTimeout(() => {
-      const simulatedResponse = isDeepMode
-        ? `[Análisis Profundo con gemini-2.5-pro]\n\nBasado en tu consulta: "${query}"\n\nAnálisis estratégico completo:\n\n1. Evaluación de mercado actual\n2. Oportunidades de crecimiento identificadas\n3. Recomendaciones estratégicas detalladas\n4. Plan de acción paso a paso\n\n[Este es un ejemplo simulado. En producción, aquí se integraría la API real de Gemini con configuración de pensamiento al máximo]`
-        : `[Respuesta Rápida con gemini-flash-lite]\n\nRespuesta directa: Basado en "${query}", te recomiendo enfocarte en optimizar tu propuesta de valor y diferenciación en el mercado.\n\n[Este es un ejemplo simulado. En producción, aquí se integraría la API real de Gemini]`;
+    try {
+      const { deepAnalysis, quickResponse } = await import("@/services/geminiService");
       
-      setResponse(simulatedResponse);
-      setIsLoading(false);
+      const result = isDeepMode 
+        ? await deepAnalysis(query)
+        : await quickResponse(query);
+      
+      setResponse(result);
       toast.success("Análisis completado");
-    }, 2000);
+    } catch (error) {
+      console.error("Error al analizar:", error);
+      toast.error("Error al procesar la consulta");
+      setResponse("Lo siento, hubo un error al procesar tu consulta. Por favor intenta nuevamente.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

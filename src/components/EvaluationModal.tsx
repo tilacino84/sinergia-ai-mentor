@@ -63,41 +63,54 @@ const EvaluationModal = ({ open, onOpenChange }: EvaluationModalProps) => {
     setInput("");
     setIsLoading(true);
 
-    // Detect if grounding is needed
-    const needsGrounding = detectSearchIntent(input);
-
-    // Simulated AI response
-    setTimeout(() => {
-      let assistantResponse: Message;
+    try {
+      // Detect if grounding is needed
+      const needsGrounding = detectSearchIntent(input);
 
       if (needsGrounding) {
-        // Simulated grounded response
-        assistantResponse = {
+        // For grounding, we'll use a simulated search
+        // In production, you'd integrate with Google Search API via edge function
+        const assistantResponse: Message = {
           role: "assistant",
           content: `He buscado información relevante sobre "${input}". Aquí están los resultados más recientes:`,
           sources: [
             { title: "Tendencias de mercado 2025", url: "https://example.com/tendencias" },
             { title: "Análisis del sector", url: "https://example.com/analisis" },
-            { title: "Guía de crecimiento empresarial", url: "https://example.com/guia" },
           ],
         };
-        toast.success("Búsqueda completada con Google Search");
+        setMessages((prev) => [...prev, assistantResponse]);
+        toast.success("Búsqueda completada");
       } else {
-        // Regular conversation
-        const responses = [
-          "Entiendo. Para poder darte la mejor recomendación, ¿podrías decirme cuánto tiempo tiene tu negocio operando?",
-          "Interesante. ¿Ya cuentas con un manual de marca definido que incluya logo, colores y lineamientos de comunicación?",
-          "Perfecto. Basándome en lo que me has contado, te recomiendo comenzar con un Manual de Marca completo. Esto te ayudará a establecer una identidad profesional y coherente.",
-        ];
-        assistantResponse = {
+        // Regular conversation with Gemini
+        const { chatEvaluation } = await import("@/services/geminiService");
+        
+        const conversationHistory = messages
+          .filter(m => m.role === "user" || m.role === "assistant")
+          .map(m => ({ role: m.role, content: m.content }));
+        
+        conversationHistory.push({ role: "user", content: input });
+        
+        const result = await chatEvaluation(conversationHistory);
+        
+        const assistantResponse: Message = {
           role: "assistant",
-          content: responses[Math.floor(Math.random() * responses.length)],
+          content: result,
         };
+        
+        setMessages((prev) => [...prev, assistantResponse]);
       }
-
-      setMessages((prev) => [...prev, assistantResponse]);
+    } catch (error) {
+      console.error("Error en chat:", error);
+      toast.error("Error al procesar el mensaje");
+      
+      const errorResponse: Message = {
+        role: "assistant",
+        content: "Lo siento, hubo un error. Por favor intenta nuevamente.",
+      };
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
