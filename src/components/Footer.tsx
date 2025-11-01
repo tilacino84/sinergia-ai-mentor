@@ -53,6 +53,11 @@ const Footer = () => {
                   Evaluación con IA
                 </a>
               </li>
+              <li>
+                <a href="/sheet-data" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Base de Datos
+                </a>
+              </li>
             </ul>
           </div>
 
