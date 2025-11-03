@@ -14,10 +14,26 @@ serve(async (req) => {
   try {
     const { spreadsheetId, range } = await req.json();
 
-    // Initialize Supabase client
+    // Get the authorization header to extract user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    // Initialize Supabase client with user's auth token
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: { Authorization: authHeader }
+      }
+    });
+
+    // Get the authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
 
     // Call the google-sheets function to get the data
     const { data: sheetData, error: sheetError } = await supabase.functions.invoke('google-sheets', {
@@ -33,11 +49,12 @@ serve(async (req) => {
       throw new Error('No data found in the sheet');
     }
 
-    // Delete existing data for this sheet
+    // Delete existing data for this sheet and user
     const { error: deleteError } = await supabase
       .from('sheet_data')
       .delete()
-      .eq('sheet_id', spreadsheetId);
+      .eq('sheet_id', spreadsheetId)
+      .eq('user_id', user.id);
 
     if (deleteError) {
       console.error('Error deleting old data:', deleteError);
@@ -58,6 +75,7 @@ serve(async (req) => {
         sheet_id: spreadsheetId,
         row_number: index + 2, // +2 because first row is headers and sheets are 1-indexed
         data: rowData,
+        user_id: user.id,
       };
     });
 
